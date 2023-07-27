@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -19,7 +20,7 @@ import reactor.core.publisher.Mono;
 public class JwtVerifyFilter implements WebFilter {
 
     private final JwtService jwtService;
-    private final MapReactiveUserDetailsService userDetailsService;
+    private final ReactiveUserDetailsService userDetailsService;
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 //        System.out.println("REQUEST ARRIVED");

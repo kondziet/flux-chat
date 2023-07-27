@@ -1,27 +1,33 @@
 package pl.kondziet.springbackend.security;
 
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.kondziet.springbackend.model.entity.User;
+import pl.kondziet.springbackend.repository.UserRepository;
+import reactor.core.publisher.Mono;
 
+@AllArgsConstructor
 @Configuration
 public class AuthConfiguration {
 
-    @Bean
-    MapReactiveUserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .nickName("kondziet")
-                .email("kondziet@gmail.com")
-                .password(passwordEncoder().encode("Hello"))
-                .build();
+    private final UserRepository userRepository;
 
-        return new MapReactiveUserDetailsService(user);
+    @Bean
+    ReactiveUserDetailsService userDetailsService() {
+        return new ReactiveUserDetailsService() {
+            @Override
+            public Mono<UserDetails> findByUsername(String username) {
+                return userRepository.findByEmail(username);
+            }
+        };
     }
 
     @Bean
