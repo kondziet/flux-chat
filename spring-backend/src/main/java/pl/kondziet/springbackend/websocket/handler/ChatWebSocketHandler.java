@@ -52,7 +52,11 @@ public class ChatWebSocketHandler implements WebSocketHandler {
                 .map(messageMapper::toString)
                 .map(session::textMessage)).then();
 
-        return Mono.zip(receive, send).then();
+        return Mono.zip(receive, send)
+                .doOnTerminate(() -> {
+                    System.out.println("Session handling has been completed!");
+                })
+                .then();
     }
 
 }
