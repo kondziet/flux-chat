@@ -1,14 +1,14 @@
 package pl.kondziet.springbackend.model.entity;
 
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 import pl.kondziet.springbackend.model.enumerable.MessageType;
 
-@Setter
-@Getter
-@Builder
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
+@Builder
+@Document
 public class Message {
     private MessageType type;
     private String content;
