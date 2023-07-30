@@ -27,7 +27,10 @@ public class AuthenticationController {
 
         return authenticationService.authenticate(loginRequest)
                 .map(ResponseEntity::ok)
-                .onErrorResume(BadCredentialsException.class, e -> Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build()));
+                .onErrorResume(
+                        BadCredentialsException.class,
+                        e -> Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+                );
     }
 
     @PostMapping("/register")
