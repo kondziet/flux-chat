@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import reactor.core.publisher.Mono;
 
 import java.security.Key;
 import java.time.Instant;
@@ -16,8 +17,8 @@ import java.util.function.Function;
 
 public interface JwtService {
 
-    boolean isTokenValid(String token, UserDetails userDetails);
-    String extractUserEmail(String token);
-    Date extractTokenExpiration(String token);
-    String generateToken(UserDetails userDetails);
+    Mono<Boolean> isTokenValid(String token, UserDetails userDetails);
+    Mono<String> extractUserEmail(String token);
+    Mono<Date> extractTokenExpiration(String token);
+    Mono<String> generateToken(UserDetails userDetails);
 }

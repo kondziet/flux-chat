@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import pl.kondziet.springbackend.jwt.JwtService;
+import reactor.core.publisher.Mono;
 
 import java.security.Key;
 import java.time.Instant;
@@ -22,45 +23,55 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.secret-key}")
     private String SECRET_KEY;
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String userEmail = extractUserEmail(token);
-        return userEmail.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public Mono<Boolean> isTokenValid(String token, UserDetails userDetails) {
+        Mono<Boolean> isExpired = isTokenExpired(token);
+        Mono<String> userEmail = extractUserEmail(token);
+
+        return Mono.zip(isExpired, userEmail)
+                .map(tuple -> !tuple.getT1() && tuple.getT2().equals(userDetails.getUsername()));
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractTokenExpiration(token).before(new Date(System.currentTimeMillis()));
+    private Mono<Boolean> isTokenExpired(String token) {
+        Mono<Date> expirationDate = extractTokenExpiration(token);
+        return expirationDate
+                .map(expiration -> expiration.before(new Date(System.currentTimeMillis())));
     }
 
-    public String extractUserEmail(String token) {
+    public Mono<String> extractUserEmail(String token) {
+
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Date extractTokenExpiration(String token) {
+    public Mono<Date> extractTokenExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
-        Claims claims = extractAllClaims(token);
-        return claimResolver.apply(claims);
+    private <T> Mono<T> extractClaim(String token, Function<Claims, T> claimResolver) {
+        return extractAllClaims(token)
+                .map(claimResolver);
     }
 
-    private Claims extractAllClaims(String token) {
+    private Mono<Claims> extractAllClaims(String token) {
         JwtParser jwtParser = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build();
 
-        return jwtParser
-                .parseClaimsJws(token)
-                .getBody();
+        return Mono.just(
+                jwtParser
+                        .parseClaimsJws(token)
+                        .getBody()
+        );
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(Instant.now().plus(30, ChronoUnit.MINUTES)))
-                .signWith(getSigningKey())
-                .compact();
+    public Mono<String> generateToken(UserDetails userDetails) {
+        return Mono.just(
+                Jwts.builder()
+                        .setSubject(userDetails.getUsername())
+                        .setIssuedAt(Date.from(Instant.now()))
+                        .setExpiration(Date.from(Instant.now().plus(30, ChronoUnit.MINUTES)))
+                        .signWith(getSigningKey())
+                        .compact()
+        );
     }
 
     private Key getSigningKey() {

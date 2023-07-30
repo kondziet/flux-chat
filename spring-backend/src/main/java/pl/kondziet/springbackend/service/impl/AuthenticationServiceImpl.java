@@ -37,12 +37,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return authenticationManager.authenticate(authentication)
                 .flatMap(auth -> userDetailsService.findByUsername(auth.getName())
-                        .map(userDetails -> {
-                            String token = jwtService.generateToken(userDetails);
-                            return LoginResponse.builder()
-                                    .token(token)
-                                    .build();
-                        })
+                        .flatMap(userDetails -> jwtService.generateToken(userDetails)
+                                .map(token -> LoginResponse.builder()
+                                        .token(token)
+                                        .build()))
                 );
     }
 
