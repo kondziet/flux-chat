@@ -49,7 +49,7 @@ public class JwtVerifyFilter implements WebFilter {
                             return Mono.empty();
                         }
                     })
-                    .onErrorResume(throwable -> {
+                    .onErrorResume(JwtException.class, e -> {
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         return exchange.getResponse().setComplete();
                     });
