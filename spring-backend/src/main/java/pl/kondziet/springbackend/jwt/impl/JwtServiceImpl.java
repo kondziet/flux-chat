@@ -52,15 +52,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Mono<Claims> extractAllClaims(String token) {
-        JwtParser jwtParser = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build();
-
-        return Mono.just(
-                jwtParser
-                        .parseClaimsJws(token)
-                        .getBody()
-        );
+        return Mono.fromCallable(() -> {
+            JwtParser jwtParser = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build();
+            return jwtParser.parseClaimsJws(token).getBody();
+        });
     }
 
     public Mono<String> generateToken(UserDetails userDetails) {
