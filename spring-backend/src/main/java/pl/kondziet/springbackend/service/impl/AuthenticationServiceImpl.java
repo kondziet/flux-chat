@@ -13,6 +13,7 @@ import pl.kondziet.springbackend.jwt.JwtService;
 import pl.kondziet.springbackend.model.dto.LoginRequest;
 import pl.kondziet.springbackend.model.dto.LoginResponse;
 import pl.kondziet.springbackend.model.dto.RegisterRequest;
+import pl.kondziet.springbackend.model.dto.RegisterResponse;
 import pl.kondziet.springbackend.model.entity.User;
 import pl.kondziet.springbackend.repository.UserRepository;
 import pl.kondziet.springbackend.service.AuthenticationService;
@@ -45,7 +46,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Mono<Void> register(RegisterRequest registerRequest) {
+    public Mono<RegisterResponse> register(RegisterRequest registerRequest) {
         return userDetailsService.findByUsername(registerRequest.getEmail())
                 .flatMap(existingUser -> {
                     return Mono.error(new UserAlreadyExistsException("User with the same email already exists."));
@@ -58,6 +59,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                             .build();
                     return userRepository.save(user);
                 }))
-                .then();
+                .then(Mono.just(
+                        RegisterResponse.builder()
+                                .message("User registered successfully")
+                                .build()
+                ));
     }
 }

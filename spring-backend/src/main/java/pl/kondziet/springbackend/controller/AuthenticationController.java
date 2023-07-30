@@ -12,6 +12,7 @@ import pl.kondziet.springbackend.exception.UserAlreadyExistsException;
 import pl.kondziet.springbackend.model.dto.LoginRequest;
 import pl.kondziet.springbackend.model.dto.LoginResponse;
 import pl.kondziet.springbackend.model.dto.RegisterRequest;
+import pl.kondziet.springbackend.model.dto.RegisterResponse;
 import pl.kondziet.springbackend.service.AuthenticationService;
 import reactor.core.publisher.Mono;
 
@@ -34,13 +35,21 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    Mono<ResponseEntity<String>> register(@RequestBody RegisterRequest registerRequest) {
+    Mono<ResponseEntity<RegisterResponse>> register(@RequestBody RegisterRequest registerRequest) {
 
         return authenticationService.register(registerRequest)
-                .map(response -> ResponseEntity.ok("User registered"))
+                .map(ResponseEntity::ok)
                 .onErrorResume(
                         UserAlreadyExistsException.class,
-                        e -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()))
+                        e -> Mono.just(
+                                ResponseEntity
+                                        .status(HttpStatus.CONFLICT)
+                                        .body(
+                                                RegisterResponse.builder()
+                                                        .message(e.getMessage())
+                                                        .build()
+                                        )
+                        )
                 );
     }
 }
