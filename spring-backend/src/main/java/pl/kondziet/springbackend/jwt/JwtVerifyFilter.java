@@ -38,13 +38,14 @@ public class JwtVerifyFilter implements WebFilter {
             return isTokenValid
                     .flatMap(isValid -> {
                         if (isValid) {
-                            return userDetails.flatMap(user -> {
-                                System.out.printf("Bearer token: %s Email: %s\n", token, user.getUsername());
-                                Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                                return ReactiveSecurityContextHolder.getContext()
-                                        .doOnNext(securityContext -> securityContext.setAuthentication(authentication))
-                                        .then(chain.filter(exchange));
-                            });
+                            return userDetails
+                                    .flatMap(user -> {
+                                        System.out.printf("Bearer token: %s Email: %s\n", token, user.getUsername());
+                                        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                                        return ReactiveSecurityContextHolder.getContext()
+                                                .doOnNext(securityContext -> securityContext.setAuthentication(authentication))
+                                                .then(chain.filter(exchange));
+                                    });
                         } else {
                             return Mono.empty();
                         }
