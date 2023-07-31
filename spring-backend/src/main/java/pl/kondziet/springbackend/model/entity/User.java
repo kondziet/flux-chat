@@ -24,10 +24,11 @@ public class User implements UserDetails {
 
     @Id
     private String id;
-    private String nickName;
     @Indexed(unique = true)
     private String email;
     private String password;
+    private String username;
+    private String visibleNickname;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

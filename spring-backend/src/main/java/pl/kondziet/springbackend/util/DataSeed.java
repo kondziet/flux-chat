@@ -21,9 +21,10 @@ public class DataSeed implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         User user1 = User.builder()
-                .nickName("dwight")
                 .email("dwightkschrute@yahoo.com")
                 .password(passwordEncoder.encode("beetroot"))
+                .username("dwight")
+                .visibleNickname("beetroot-farm")
                 .build();
 
         userRepository.save(user1).subscribe(savedUser -> {
