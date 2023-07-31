@@ -11,7 +11,7 @@ public class MessageMapper {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @SneakyThrows
-    public Message toEvent(String message) {
+    public Message toMessage(String message) {
         return objectMapper.readValue(message, Message.class);
     }
 

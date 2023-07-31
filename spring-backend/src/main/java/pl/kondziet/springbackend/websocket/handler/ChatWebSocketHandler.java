@@ -27,11 +27,11 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
         Mono<Void> receive = session.receive()
                 .map(WebSocketMessage::getPayloadAsText)
-                .map(messageMapper::toEvent)
-                .doOnNext(event -> {
-                    System.out.println(event);
-                    lastReceivedEvent.set(event);
-                    chatHistory.tryEmitNext(event);
+                .map(messageMapper::toMessage)
+                .doOnNext(message -> {
+                    System.out.println(message);
+                    lastReceivedEvent.set(message);
+                    chatHistory.tryEmitNext(message);
                 })
                 .doOnComplete(() -> {
                     System.out.println("Completed");
@@ -50,7 +50,8 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
         Mono<Void> send = session.send(chatHistory.asFlux()
                 .map(messageMapper::toString)
-                .map(session::textMessage)).then();
+                .map(session::textMessage))
+                .then();
 
         return Mono.zip(receive, send)
                 .doOnTerminate(() -> {
