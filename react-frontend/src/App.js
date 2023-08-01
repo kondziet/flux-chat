@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
+import React, { useState, useCallback, useEffect } from "react";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 
 const App = () => {
   const [socketUrl, setSocketUrl] = useState("ws://localhost:8080/chat");
@@ -15,27 +15,30 @@ const App = () => {
     }
   }, [lastMessage, setMessageHistory]);
 
-  const handleClickSendMessage = useCallback(() => sendMessage(
-    JSON.stringify(
-      {
+  const handleClickSendMessage = useCallback(() =>
+    sendMessage(
+      JSON.stringify({
         type: "JOIN",
         content: messageInput,
-        sender: "kondziet"
-      }
-      )
-  ));
+        sender: "kondziet",
+      })
+    )
+  );
 
   const connectionStatus = {
-    [ReadyState.CONNECTING]: 'Connecting',
-    [ReadyState.OPEN]: 'Open',
-    [ReadyState.CLOSING]: 'Closing',
-    [ReadyState.CLOSED]: 'Closed',
-    [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+    [ReadyState.CONNECTING]: "Connecting",
+    [ReadyState.OPEN]: "Open",
+    [ReadyState.CLOSING]: "Closing",
+    [ReadyState.CLOSED]: "Closed",
+    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
 
   return (
     <div>
-      <input value={messageInput} onChange={(event) => setMessageInput(event.target.value)} />
+      <input
+        value={messageInput}
+        onChange={(event) => setMessageInput(event.target.value)}
+      />
       <button
         onClick={handleClickSendMessage}
         disabled={readyState !== ReadyState.OPEN}
