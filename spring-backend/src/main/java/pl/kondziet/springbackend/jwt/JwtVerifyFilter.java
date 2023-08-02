@@ -7,8 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -23,6 +26,7 @@ public class JwtVerifyFilter implements WebFilter {
 
     private final JwtService jwtService;
     private final ReactiveUserDetailsService userDetailsService;
+    private final WebSessionServerSecurityContextRepository serverSecurityContextRepository;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -42,8 +46,9 @@ public class JwtVerifyFilter implements WebFilter {
                                     .flatMap(user -> {
                                         System.out.printf("Bearer token: %s Email: %s\n", token, user.getUsername());
                                         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                                        return ReactiveSecurityContextHolder.getContext()
-                                                .doOnNext(securityContext -> securityContext.setAuthentication(authentication))
+                                        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+                                        securityContext.setAuthentication(authentication);
+                                        return serverSecurityContextRepository.save(exchange, securityContext)
                                                 .then(chain.filter(exchange));
                                     });
                         } else {

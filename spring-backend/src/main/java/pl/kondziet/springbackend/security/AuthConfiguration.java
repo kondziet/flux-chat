@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import pl.kondziet.springbackend.model.entity.User;
 import pl.kondziet.springbackend.repository.UserRepository;
 import reactor.core.publisher.Mono;
@@ -36,6 +37,11 @@ public class AuthConfiguration {
         authenticationManager.setPasswordEncoder(passwordEncoder());
 
         return authenticationManager;
+    }
+
+    @Bean
+    public WebSessionServerSecurityContextRepository securityContextRepository() {
+        return new WebSessionServerSecurityContextRepository();
     }
 
     @Bean
