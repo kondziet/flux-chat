@@ -14,7 +14,6 @@ import pl.kondziet.springbackend.service.AuthenticationService;
 import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/authentication")
 public class AuthenticationController {
