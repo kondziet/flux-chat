@@ -12,7 +12,7 @@ import java.security.Principal;
 @RequestMapping("/api/chatroom")
 public class ChatRoomController {
 
-    @PostMapping("/")
+    @PostMapping
     public Mono<ResponseEntity<String>> createNewChatRoom() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
