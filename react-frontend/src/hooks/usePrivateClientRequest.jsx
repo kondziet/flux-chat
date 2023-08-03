@@ -1,29 +1,29 @@
 import { useEffect } from "react";
-import useAuthenticationContext from "./useAuthentication";
+import useAuthenticationContext from "./useAuthenticationContext";
 import { privateClientRequest } from "../api/clientRequest";
 
 const usePrivateClientRequest = () => {
-    const { authentication } = useAuthenticationContext();
+  const { authentication } = useAuthenticationContext();
 
-    useEffect(() => {
-        const requestIntercept = privateClientRequest.interceptors.request.use(
-            config => {
-                if (!config.headers.Authorization) {
-                    config.headers.Authorization = `Bearer ${authentication?.accessToken}`;
-                }
-                return config;
-            }, (error) => Promise.reject(error)
-        );
+  useEffect(() => {
+    const requestIntercept = privateClientRequest.interceptors.request.use(
+      (config) => {
+        if (!config.headers.Authorization) {
+          config.headers.Authorization = `Bearer ${authentication?.accessToken}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-        const cleanup = () => {
-            privateClientRequest.interceptors.request.eject(requestIntercept);
-        };
+    const cleanup = () => {
+      privateClientRequest.interceptors.request.eject(requestIntercept);
+    };
 
-        return cleanup;
+    return cleanup;
+  }, [authentication]);
 
-    }, [authentication]);
-
-    return privateClientRequest;
-}
+  return privateClientRequest;
+};
 
 export default usePrivateClientRequest;
