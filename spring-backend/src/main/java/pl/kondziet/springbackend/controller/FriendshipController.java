@@ -38,4 +38,22 @@ public class FriendshipController {
                         ResponseEntity.ok("hello")
                 ));
     }
+
+    @PostMapping("/accept/{friendshipId}")
+    Mono<ResponseEntity<String>> acceptFriendshipRequest(@PathVariable String friendshipId) {
+
+        Mono<String> userId = ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .map(Principal::getName)
+                .flatMap(userRepository::findUserByEmail)
+                .map(User::getId);
+
+        return userId
+                .flatMap(id -> friendshipService.acceptFriendshipRequest(friendshipId, id))
+                .then(Mono.just(
+                        ResponseEntity.ok("done")
+                ));
+    }
+
+
 }

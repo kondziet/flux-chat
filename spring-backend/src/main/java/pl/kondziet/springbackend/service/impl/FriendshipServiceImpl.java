@@ -35,4 +35,18 @@ public class FriendshipServiceImpl implements FriendshipService {
                 })
                 .then(Mono.just(true));
     }
+
+    @Override
+    public Mono<Boolean> acceptFriendshipRequest(String friendshipId, String accepterId) {
+        return friendshipRepository.findById(friendshipId)
+                .flatMap(friendship -> {
+                    if (friendship.getReceiverId().equals(accepterId)) {
+                        friendship.setFriendshipStatus(FriendshipStatus.ACCEPTED);
+                        return friendshipRepository.save(friendship)
+                                .thenReturn(true);
+                    } else {
+                        return Mono.error(new IllegalArgumentException("User is not allowed to accept this friendship request."));
+                    }
+                });
+    }
 }
