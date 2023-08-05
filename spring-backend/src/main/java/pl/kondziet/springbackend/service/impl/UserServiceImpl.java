@@ -15,23 +15,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<Boolean> doesUserWithEmailExists(String email) {
-        return userRepository.findByEmail(email)
-                .flatMap(existingUser -> Mono.just(true))
-                .switchIfEmpty(Mono.just(false));
+        return userRepository.existsByEmail(email);
     }
 
     @Override
     public Mono<Boolean> doesUserWithUsernameExists(String username) {
-        return userRepository.findByUsername(username)
-                .flatMap(existingUser -> Mono.just(true))
-                .switchIfEmpty(Mono.just(false));
+        return userRepository.existsByUsername(username);
     }
 
     @Override
     public Mono<Boolean> doesUserWithIdExists(String id) {
-        return userRepository.findById(id)
-                .flatMap(existingUser -> Mono.just(true))
-                .switchIfEmpty(Mono.just(false));
+        return userRepository.existsById(id);
     }
 
     @Override
