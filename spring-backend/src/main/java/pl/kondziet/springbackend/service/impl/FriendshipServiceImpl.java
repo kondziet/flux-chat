@@ -18,8 +18,9 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final UserService userService;
 
     @Override
-    public Mono<Boolean> sendFriendshipRequest(String senderId, String receiverId) {
-        return userService.doesUserWithIdExists(receiverId)
+    public Mono<Friendship> sendFriendshipRequest(String senderId, String receiverId) {
+        return userService
+                .doesUserWithIdExists(receiverId)
                 .flatMap(exists -> {
                     if (exists) {
                         return friendshipRepository.save(
@@ -32,20 +33,20 @@ public class FriendshipServiceImpl implements FriendshipService {
                     } else {
                         return Mono.error(new UserNotFoundException(String.format("User with ID %s doesn't exist", receiverId)));
                     }
-                })
-                .then(Mono.just(true));
+                });
     }
 
     @Override
-    public Mono<Boolean> acceptFriendshipRequest(String friendshipId, String accepterId) {
-        return friendshipRepository.findById(friendshipId)
+    public Mono<Friendship> acceptFriendshipRequest(String friendshipId, String accepterId) {
+        return friendshipRepository
+                .findById(friendshipId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(String.format("Friendship with ID %s doesn't exist", friendshipId))))
                 .flatMap(friendship -> {
                     if (friendship.getReceiverId().equals(accepterId)) {
                         friendship.setFriendshipStatus(FriendshipStatus.ACCEPTED);
-                        return friendshipRepository.save(friendship)
-                                .thenReturn(true);
+                        return friendshipRepository.save(friendship);
                     } else {
-                        return Mono.error(new IllegalArgumentException("User is not allowed to accept this friendship request."));
+                        return Mono.error(new IllegalArgumentException("User is not allowed to accept this friendship request"));
                     }
                 });
     }
