@@ -66,10 +66,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         return Mono.error(new UserAlreadyExistsException("User already exists"));
                     }
                 })
-                .then(Mono.just(
+                .thenReturn(
                         RegisterResponse.builder()
                                 .message("User registered successfully")
                                 .build()
-                ));
+                );
     }
 }
