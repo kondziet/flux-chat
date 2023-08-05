@@ -42,6 +42,10 @@ public class FriendshipController {
                 .onErrorResume(
                         UserNotFoundException.class,
                         e -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()))
+                )
+                .onErrorResume(
+                        IllegalArgumentException.class,
+                        e -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()))
                 );
     }
 
