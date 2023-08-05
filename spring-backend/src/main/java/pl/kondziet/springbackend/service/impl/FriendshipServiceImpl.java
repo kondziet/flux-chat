@@ -19,21 +19,27 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public Mono<Friendship> sendFriendshipRequest(String senderId, String receiverId) {
-        return userService
-                .doesUserWithIdExists(receiverId)
-                .flatMap(exists -> {
-                    if (exists) {
-                        return friendshipRepository.save(
+
+        Mono<Boolean> doesUserExists = userService.doesUserWithIdExists(receiverId)
+                .filter(exists -> exists)
+                .switchIfEmpty(Mono.error(new UserNotFoundException(String.format("User with ID %s doesn't exist", receiverId))));
+
+        Mono<Boolean> requestAlreadySent = friendshipRepository.existsBySenderIdAndReceiverId(senderId, receiverId)
+                .filter(sent -> !sent)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Request has been already sent")));
+
+        return Mono.zip(
+                        doesUserExists,
+                        requestAlreadySent
+                )
+                .then(friendshipRepository.save(
                                 Friendship.builder()
                                         .senderId(senderId)
                                         .receiverId(receiverId)
                                         .friendshipStatus(FriendshipStatus.REQUESTED)
                                         .build()
-                        );
-                    } else {
-                        return Mono.error(new UserNotFoundException(String.format("User with ID %s doesn't exist", receiverId)));
-                    }
-                });
+                        )
+                );
     }
 
     @Override
