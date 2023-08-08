@@ -56,4 +56,9 @@ public class FriendshipServiceImpl implements FriendshipService {
                     }
                 });
     }
+
+    @Override
+    public Flux<FriendshipDetails> findReceiverFriendshipDetails(String receiverId, FriendshipStatus friendshipStatus) {
+        return friendshipRepository.findReceiverFriendshipDetails(receiverId, friendshipStatus);
+    }
 }

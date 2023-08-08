@@ -5,19 +5,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import pl.kondziet.springbackend.exception.UserAlreadyExistsException;
+import org.springframework.web.bind.annotation.*;
 import pl.kondziet.springbackend.exception.UserNotFoundException;
-import pl.kondziet.springbackend.model.dto.RegisterResponse;
+import pl.kondziet.springbackend.model.dto.FriendshipResponse;
 import pl.kondziet.springbackend.model.entity.User;
+import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
 import pl.kondziet.springbackend.repository.UserRepository;
 import pl.kondziet.springbackend.service.FriendshipService;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
+import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -67,5 +65,28 @@ public class FriendshipController {
                 );
     }
 
+    @GetMapping("/requests")
+    Mono<ResponseEntity<List<FriendshipResponse>>> getFriendshipRequests() {
 
+        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .map(Principal::getName)
+                .flatMap(userRepository::findUserByEmail)
+                .map(User::getId);
+
+        Mono<List<FriendshipResponse>> friendshipRequests = clientId
+                .flatMapMany(receiverId -> friendshipService.findReceiverFriendshipDetails(receiverId, FriendshipStatus.REQUESTED))
+                .map(request -> FriendshipResponse.builder()
+                        .id(request.getId())
+                        .senderId(request.getSenderId())
+                        .receiverId(request.getReceiverId())
+                        .friendshipStatus(request.getFriendshipStatus())
+                        .senderUsername(request.getSenderUsername())
+                        .build()
+                )
+                .collectList();
+
+        return friendshipRequests
+                .map(ResponseEntity::ok);
+    }
 }
