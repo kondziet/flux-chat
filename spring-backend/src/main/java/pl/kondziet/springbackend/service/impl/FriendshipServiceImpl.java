@@ -3,11 +3,13 @@ package pl.kondziet.springbackend.service.impl;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kondziet.springbackend.exception.UserNotFoundException;
+import pl.kondziet.springbackend.model.aggregation.FriendshipDetails;
 import pl.kondziet.springbackend.model.entity.Friendship;
 import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
 import pl.kondziet.springbackend.repository.FriendshipRepository;
 import pl.kondziet.springbackend.service.FriendshipService;
 import pl.kondziet.springbackend.service.UserService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
@@ -20,6 +22,10 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     public Mono<Friendship> sendFriendshipRequest(String senderId, String receiverId) {
 
+        Mono<Boolean> isSenderReceiver = Mono.just(senderId.equals(receiverId))
+                .filter(same -> !same)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Sender is also Receiver")));
+
         Mono<Boolean> doesUserExists = userService.doesUserWithIdExists(receiverId)
                 .filter(exists -> exists)
                 .switchIfEmpty(Mono.error(new UserNotFoundException(String.format("User with ID %s doesn't exist", receiverId))));
@@ -29,6 +35,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Request has been already sent")));
 
         return Mono.zip(
+                        isSenderReceiver,
                         doesUserExists,
                         requestAlreadySent
                 )
