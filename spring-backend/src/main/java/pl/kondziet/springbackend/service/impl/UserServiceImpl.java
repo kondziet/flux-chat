@@ -24,11 +24,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<Boolean> doesUserWithIdExists(String id) {
-        return userRepository.existsById(id);
-    }
-
-    @Override
     public Mono<User> saveUser(User user) {
         return userRepository.save(user);
     }

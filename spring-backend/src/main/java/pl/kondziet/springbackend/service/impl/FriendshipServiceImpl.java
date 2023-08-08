@@ -26,17 +26,12 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .filter(same -> !same)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Sender is also Receiver")));
 
-        Mono<Boolean> doesUserExists = userService.doesUserWithIdExists(receiverId)
-                .filter(exists -> exists)
-                .switchIfEmpty(Mono.error(new UserNotFoundException(String.format("User with ID %s doesn't exist", receiverId))));
-
         Mono<Boolean> requestAlreadySent = friendshipRepository.existsBySenderIdAndReceiverId(senderId, receiverId)
                 .filter(sent -> !sent)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Request has been already sent")));
 
         return Mono.zip(
                         isSenderReceiver,
-                        doesUserExists,
                         requestAlreadySent
                 )
                 .then(friendshipRepository.save(

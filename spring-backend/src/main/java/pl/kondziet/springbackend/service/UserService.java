@@ -6,6 +6,5 @@ import reactor.core.publisher.Mono;
 public interface UserService {
     Mono<Boolean> doesUserWithEmailExists(String email);
     Mono<Boolean> doesUserWithUsernameExists(String username);
-    Mono<Boolean> doesUserWithIdExists(String id);
     Mono<User> saveUser(User user);
 }
