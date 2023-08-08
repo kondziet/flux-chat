@@ -12,12 +12,27 @@ public interface FriendshipRepository extends ReactiveMongoRepository<Friendship
 
     @Aggregation(pipeline = {
             "{'$match': {'receiverId': ?0, 'friendshipStatus':  ?1}}",
-            "{'$addFields': {'senderIdObjectId': { '$toObjectId': '$senderId' }}}",
+            "{'$addFields': {'senderIdObjectId': { '$toObjectId': '$senderId' }, 'receiverIdObjectId': { '$toObjectId': '$receiverId' }}}",
             "{'$lookup': {'from': 'user','localField': 'senderIdObjectId','foreignField': '_id','as': 'sender'}}",
+            "{'$lookup': {'from': 'user','localField': 'receiverIdObjectId','foreignField': '_id','as': 'receiver'}}",
             "{'$unwind': '$sender'}",
+            "{'$unwind': '$receiver'}",
             "{'$addFields': {'senderUsername': '$sender.username'}}",
-            "{'$project': {'senderIdObjectId': 0, 'sender': 0}}"
+            "{'$addFields': {'receiverUsername': '$receiver.username'}}",
+            "{'$project': {'senderIdObjectId': 0, 'receiverIdObjectId':  0, 'sender': 0}}"
     })
     Flux<FriendshipDetails> findReceiverFriendshipDetails(String receiverId, FriendshipStatus friendshipStatus);
+    @Aggregation(pipeline = {
+            "{'$match': {'senderId': ?0, 'friendshipStatus':  ?1}}",
+            "{'$addFields': {'senderIdObjectId': { '$toObjectId': '$senderId' }, 'receiverIdObjectId': { '$toObjectId': '$receiverId' }}}",
+            "{'$lookup': {'from': 'user','localField': 'senderIdObjectId','foreignField': '_id','as': 'sender'}}",
+            "{'$lookup': {'from': 'user','localField': 'receiverIdObjectId','foreignField': '_id','as': 'receiver'}}",
+            "{'$unwind': '$sender'}",
+            "{'$unwind': '$receiver'}",
+            "{'$addFields': {'senderUsername': '$sender.username'}}",
+            "{'$addFields': {'receiverUsername': '$receiver.username'}}",
+            "{'$project': {'senderIdObjectId': 0, 'receiverIdObjectId':  0, 'sender': 0}}"
+    })
+    Flux<FriendshipDetails> findSenderFriendshipDetails(String senderId, FriendshipStatus friendshipStatus);
     Mono<Boolean> existsBySenderIdAndReceiverId(String senderId, String receiverId);
 }

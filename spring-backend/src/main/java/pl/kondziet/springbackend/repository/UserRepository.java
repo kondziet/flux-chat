@@ -6,6 +6,7 @@ import pl.kondziet.springbackend.model.entity.User;
 import reactor.core.publisher.Mono;
 
 public interface UserRepository extends ReactiveMongoRepository<User, String> {
+    Mono<User> findByUsername(String username);
     Mono<User> findUserByEmail(String email);
     Mono<UserDetails> findByEmail(String email);
     Mono<Boolean> existsByEmail(String email);

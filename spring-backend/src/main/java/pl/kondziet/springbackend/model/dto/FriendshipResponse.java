@@ -17,4 +17,5 @@ public class FriendshipResponse {
     private String receiverId;
     private FriendshipStatus friendshipStatus;
     private String senderUsername;
+    private String receiverUsername;
 }

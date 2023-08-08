@@ -9,6 +9,8 @@ import reactor.core.publisher.Mono;
 public interface FriendshipService {
 
     Flux<FriendshipDetails> findReceiverFriendshipDetails(String receiverId, FriendshipStatus friendshipStatus);
+    Flux<FriendshipDetails> findSenderFriendshipDetails(String senderId, FriendshipStatus friendshipStatus);
     Mono<Friendship> sendFriendshipRequest(String senderId, String receiverId);
     Mono<Friendship> acceptFriendshipRequest(String friendshipId, String accepterId);
+    Mono<Void> declineFriendshipRequest(String friendshipId, String declinerId);
 }

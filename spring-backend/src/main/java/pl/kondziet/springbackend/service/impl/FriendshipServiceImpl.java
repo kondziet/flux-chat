@@ -2,7 +2,6 @@ package pl.kondziet.springbackend.service.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.kondziet.springbackend.exception.UserNotFoundException;
 import pl.kondziet.springbackend.model.aggregation.FriendshipDetails;
 import pl.kondziet.springbackend.model.entity.Friendship;
 import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
@@ -60,7 +59,26 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    public Mono<Void> declineFriendshipRequest(String friendshipId, String declinerId) {
+        return friendshipRepository
+                .findById(friendshipId)
+                .map(friendship -> friendship.getReceiverId().equals(declinerId) || friendship.getSenderId().equals(declinerId))
+                .flatMap(isAllowed -> {
+                    if (isAllowed) {
+                        return friendshipRepository.deleteById(friendshipId);
+                    } else {
+                        return Mono.error(new IllegalArgumentException("User is not allowed for decline this friendship request"));
+                    }
+                });
+    }
+
+    @Override
     public Flux<FriendshipDetails> findReceiverFriendshipDetails(String receiverId, FriendshipStatus friendshipStatus) {
         return friendshipRepository.findReceiverFriendshipDetails(receiverId, friendshipStatus);
+    }
+
+    @Override
+    public Flux<FriendshipDetails> findSenderFriendshipDetails(String senderId, FriendshipStatus friendshipStatus) {
+        return friendshipRepository.findSenderFriendshipDetails(senderId, friendshipStatus);
     }
 }
