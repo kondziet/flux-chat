@@ -6,9 +6,9 @@ import pl.kondziet.springbackend.model.entity.ChatRoom;
 import pl.kondziet.springbackend.repository.ChatRoomRepository;
 import pl.kondziet.springbackend.repository.UserRepository;
 import pl.kondziet.springbackend.service.ChatRoomService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -34,5 +34,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                                         .build()
                         )
                 );
+    }
+
+    @Override
+    public Flux<ChatRoom> findAllUserChatRooms(String userId) {
+        return chatRoomRepository.findByMemberIdsContaining(userId);
     }
 }

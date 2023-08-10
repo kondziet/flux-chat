@@ -9,6 +9,7 @@ import DefaultChatRoom from "./pages/DefaultChatRoom";
 import ChatRoom from "./pages/ChatRoom";
 import SidebarLayout from "./pages/SidebarLayout";
 import FriendsPage from "./pages/FriendsPage";
+import CreateChatRoom from "./pages/CreateChatRoom";
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
               <Route path="chatroom" element={<ChatRoomsLayout />}>
                 <Route index element={<DefaultChatRoom />} />
                 <Route path=":chatRoomId" element={<ChatRoom />} />
+                <Route path="create" element={<CreateChatRoom />} />
               </Route>
               <Route path="friends" element={<FriendsPage />} />
             </Route>
