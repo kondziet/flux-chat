@@ -25,7 +25,11 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .filter(same -> !same)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Sender is also Receiver")));
 
-        Mono<Boolean> requestAlreadySent = friendshipRepository.existsBySenderIdAndReceiverId(senderId, receiverId)
+        Mono<Boolean> requestAlreadySent = Mono.zip(
+                        friendshipRepository.existsBySenderIdAndReceiverId(senderId, receiverId),
+                        friendshipRepository.existsBySenderIdAndReceiverId(receiverId, senderId)
+                )
+                .map(tuple -> tuple.getT1() || tuple.getT2())
                 .filter(sent -> !sent)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Request has been already sent")));
 
@@ -73,12 +77,17 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    public Flux<FriendshipDetails> findAllFriendshipsWithUserId(String userId, FriendshipStatus friendshipStatus) {
+        return friendshipRepository.findAllFriendshipsWithUserId(userId, friendshipStatus);
+    }
+
+    @Override
     public Flux<FriendshipDetails> findReceiverFriendshipDetails(String receiverId, FriendshipStatus friendshipStatus) {
-        return friendshipRepository.findReceiverFriendshipDetails(receiverId, friendshipStatus);
+        return friendshipRepository.findReceiverFriendships(receiverId, friendshipStatus);
     }
 
     @Override
     public Flux<FriendshipDetails> findSenderFriendshipDetails(String senderId, FriendshipStatus friendshipStatus) {
-        return friendshipRepository.findSenderFriendshipDetails(senderId, friendshipStatus);
+        return friendshipRepository.findSenderFriendships(senderId, friendshipStatus);
     }
 }
