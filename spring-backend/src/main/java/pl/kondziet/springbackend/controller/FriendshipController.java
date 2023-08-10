@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
+import pl.kondziet.springbackend.model.aggregation.FriendshipDetails;
 import pl.kondziet.springbackend.model.dto.FriendshipResponse;
 import pl.kondziet.springbackend.model.entity.User;
 import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
 import pl.kondziet.springbackend.repository.UserRepository;
 import pl.kondziet.springbackend.service.FriendshipService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
@@ -27,7 +29,7 @@ public class FriendshipController {
     @PostMapping("/request/{receiverUsername}")
     Mono<ResponseEntity<String>> sendFriendshipRequest(@PathVariable String receiverUsername) {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
@@ -36,7 +38,7 @@ public class FriendshipController {
         return userRepository.findByUsername(receiverUsername)
                 .flatMap(receiver -> {
                     String receiverId = receiver.getId();
-                    return clientId
+                    return authenticatedUserId
                             .flatMap(senderId -> friendshipService.sendFriendshipRequest(senderId, receiverId))
                             .thenReturn(ResponseEntity.ok("Friendship request has been sent"))
                             .onErrorResume(
@@ -52,13 +54,13 @@ public class FriendshipController {
     @PostMapping("/accept/{friendshipId}")
     Mono<ResponseEntity<String>> acceptFriendshipRequest(@PathVariable String friendshipId) {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        return clientId
+        return authenticatedUserId
                 .flatMap(accepterId -> friendshipService.acceptFriendshipRequest(friendshipId, accepterId))
                 .thenReturn(ResponseEntity.ok("Friendship request has been accepted"))
                 .onErrorResume(
@@ -70,13 +72,13 @@ public class FriendshipController {
     @PostMapping("/decline/{friendshipId}")
     Mono<ResponseEntity<String>> declineFriendshipRequest(@PathVariable String friendshipId) {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        return clientId
+        return authenticatedUserId
                 .flatMap(declinerId -> friendshipService.declineFriendshipRequest(friendshipId, declinerId))
                 .thenReturn(ResponseEntity.ok("Friendship request has been declined"))
                 .onErrorResume(
@@ -88,13 +90,13 @@ public class FriendshipController {
     @GetMapping("/pending")
     Mono<ResponseEntity<List<FriendshipResponse>>> getPendingFriendships() {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = clientId
+        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
                 .flatMapMany(receiverId -> friendshipService.findReceiverFriendshipDetails(receiverId, FriendshipStatus.REQUESTED))
                 .map(request -> FriendshipResponse.builder()
                         .id(request.getId())
@@ -114,13 +116,13 @@ public class FriendshipController {
     @GetMapping("/requested")
     Mono<ResponseEntity<List<FriendshipResponse>>> getRequestedFriendships() {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = clientId
+        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
                 .flatMapMany(senderId -> friendshipService.findSenderFriendshipDetails(senderId, FriendshipStatus.REQUESTED))
                 .map(request -> FriendshipResponse.builder()
                         .id(request.getId())
@@ -140,14 +142,14 @@ public class FriendshipController {
     @GetMapping("/accepted")
     Mono<ResponseEntity<List<FriendshipResponse>>> getAcceptedFriendships() {
 
-        Mono<String> clientId = ReactiveSecurityContextHolder.getContext()
+        Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Principal::getName)
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = clientId
-                .flatMapMany(receiverId -> friendshipService.findReceiverFriendshipDetails(receiverId, FriendshipStatus.ACCEPTED))
+        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
+                .flatMapMany(userId -> friendshipService.findAllFriendshipsWithUserId(userId, FriendshipStatus.ACCEPTED))
                 .map(request -> FriendshipResponse.builder()
                         .id(request.getId())
                         .senderId(request.getSenderId())
