@@ -19,6 +19,6 @@ public class ChatRoom {
     @Id
     private String id;
     private String name;
-    private Set<String> userIds; // Set of user IDs participating in this chat room
+    private Set<String> memberIds; // Set of user IDs participating in this chat room
 
 }
