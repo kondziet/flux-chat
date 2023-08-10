@@ -10,12 +10,9 @@ import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FriendshipResponse {
+public class RequestedFriendshipResponse {
 
-    private String id;
-    private String senderId;
+    private String friendshipId;
     private String receiverId;
-    private FriendshipStatus friendshipStatus;
-    private String senderUsername;
     private String receiverUsername;
 }

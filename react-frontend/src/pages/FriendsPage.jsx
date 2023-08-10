@@ -97,7 +97,7 @@ const FriendsPage = () => {
     (requested, index) => (
       <PendingFriendship
         key={index}
-        requestId={requested.id}
+        friendshipId={requested.friendshipId}
         senderUsername={requested.senderUsername}
       />
     )
@@ -107,7 +107,7 @@ const FriendsPage = () => {
     (requested, index) => (
       <RequestedFriendship
         key={index}
-        requestId={requested.id}
+        friendshipId={requested.friendshipId}
         receiverUsername={requested.receiverUsername}
       />
     )
@@ -117,8 +117,8 @@ const FriendsPage = () => {
     (accepted, index) => (
       <AcceptedFriendship
         key={index}
-        requestId={accepted.id}
-        senderUsername={accepted.senderUsername}
+        friendshipId={accepted.friendshipId}
+        friendUsername={accepted.friendUsername}
       />
     )
   );

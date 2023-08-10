@@ -6,13 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
-import pl.kondziet.springbackend.model.aggregation.FriendshipDetails;
-import pl.kondziet.springbackend.model.dto.FriendshipResponse;
+import pl.kondziet.springbackend.model.dto.AcceptedFriendshipResponse;
+import pl.kondziet.springbackend.model.dto.PendingFriendshipResponse;
+import pl.kondziet.springbackend.model.dto.RequestedFriendshipResponse;
 import pl.kondziet.springbackend.model.entity.User;
 import pl.kondziet.springbackend.model.enumerable.FriendshipStatus;
 import pl.kondziet.springbackend.repository.UserRepository;
 import pl.kondziet.springbackend.service.FriendshipService;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
@@ -88,7 +88,7 @@ public class FriendshipController {
     }
 
     @GetMapping("/pending")
-    Mono<ResponseEntity<List<FriendshipResponse>>> getPendingFriendships() {
+    Mono<ResponseEntity<List<PendingFriendshipResponse>>> getPendingFriendships() {
 
         Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
@@ -96,15 +96,12 @@ public class FriendshipController {
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
+        Mono<List<PendingFriendshipResponse>> friendshipRequests = authenticatedUserId
                 .flatMapMany(receiverId -> friendshipService.findReceiverFriendshipDetails(receiverId, FriendshipStatus.REQUESTED))
-                .map(request -> FriendshipResponse.builder()
-                        .id(request.getId())
+                .map(request -> PendingFriendshipResponse.builder()
+                        .friendshipId(request.getId())
                         .senderId(request.getSenderId())
-                        .receiverId(request.getReceiverId())
-                        .friendshipStatus(request.getFriendshipStatus())
                         .senderUsername(request.getSenderUsername())
-                        .receiverUsername(request.getReceiverUsername())
                         .build()
                 )
                 .collectList();
@@ -114,7 +111,7 @@ public class FriendshipController {
     }
 
     @GetMapping("/requested")
-    Mono<ResponseEntity<List<FriendshipResponse>>> getRequestedFriendships() {
+    Mono<ResponseEntity<List<RequestedFriendshipResponse>>> getRequestedFriendships() {
 
         Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
@@ -122,14 +119,11 @@ public class FriendshipController {
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
+        Mono<List<RequestedFriendshipResponse>> friendshipRequests = authenticatedUserId
                 .flatMapMany(senderId -> friendshipService.findSenderFriendshipDetails(senderId, FriendshipStatus.REQUESTED))
-                .map(request -> FriendshipResponse.builder()
-                        .id(request.getId())
-                        .senderId(request.getSenderId())
+                .map(request -> RequestedFriendshipResponse.builder()
+                        .friendshipId(request.getId())
                         .receiverId(request.getReceiverId())
-                        .friendshipStatus(request.getFriendshipStatus())
-                        .senderUsername(request.getSenderUsername())
                         .receiverUsername(request.getReceiverUsername())
                         .build()
                 )
@@ -140,7 +134,7 @@ public class FriendshipController {
     }
 
     @GetMapping("/accepted")
-    Mono<ResponseEntity<List<FriendshipResponse>>> getAcceptedFriendships() {
+    Mono<ResponseEntity<List<AcceptedFriendshipResponse>>> getAcceptedFriendships() {
 
         Mono<String> authenticatedUserId = ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
@@ -148,17 +142,25 @@ public class FriendshipController {
                 .flatMap(userRepository::findUserByEmail)
                 .map(User::getId);
 
-        Mono<List<FriendshipResponse>> friendshipRequests = authenticatedUserId
-                .flatMapMany(userId -> friendshipService.findAllFriendshipsWithUserId(userId, FriendshipStatus.ACCEPTED))
-                .map(request -> FriendshipResponse.builder()
-                        .id(request.getId())
-                        .senderId(request.getSenderId())
-                        .receiverId(request.getReceiverId())
-                        .friendshipStatus(request.getFriendshipStatus())
-                        .senderUsername(request.getSenderUsername())
-                        .receiverUsername(request.getReceiverUsername())
-                        .build()
-                )
+        Mono<List<AcceptedFriendshipResponse>> friendshipRequests = authenticatedUserId
+                .flatMapMany(userId -> friendshipService.findAllFriendshipsWithUserId(userId, FriendshipStatus.ACCEPTED)
+                        .map(request -> {
+                                    if (request.getSenderId().equals(userId)) {
+                                        return AcceptedFriendshipResponse.builder()
+                                                .friendshipId(request.getId())
+                                                .friendId(request.getReceiverId())
+                                                .friendUsername(request.getReceiverUsername())
+                                                .build();
+                                    } else {
+                                        return AcceptedFriendshipResponse.builder()
+                                                .friendshipId(request.getId())
+                                                .friendId(request.getSenderId())
+                                                .friendUsername(request.getSenderUsername())
+                                                .build();
+                                    }
+                                }
+                        ))
+
                 .collectList();
 
         return friendshipRequests
