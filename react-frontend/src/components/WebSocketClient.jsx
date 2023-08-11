@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
-const WebSocketClient = () => {
-  const [socketUrl, setSocketUrl] = useState("ws://localhost:8080/chat");
+const WebSocketClient = ({ chatRoomId }) => {
+  const [socketUrl, setSocketUrl] = useState(`ws://localhost:8080/chat/${chatRoomId}`);
   const [messageHistory, setMessageHistory] = useState([]);
 
   const [messageInput, setMessageInput] = useState("");
