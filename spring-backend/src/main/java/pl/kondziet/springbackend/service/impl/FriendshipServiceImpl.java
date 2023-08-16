@@ -78,7 +78,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public Flux<FriendshipDetails> findAllFriendshipsWithUserId(String userId, FriendshipStatus friendshipStatus) {
-        return friendshipRepository.findAllFriendshipsWithUserId(userId, friendshipStatus);
+        return friendshipRepository.findAllFriendshipsContainingUserId(userId, friendshipStatus);
     }
 
     @Override

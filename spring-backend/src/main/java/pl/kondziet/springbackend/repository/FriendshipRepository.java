@@ -46,6 +46,6 @@ public interface FriendshipRepository extends ReactiveMongoRepository<Friendship
             "{'$addFields': {'receiverUsername': '$receiver.username'}}",
             "{'$project': {'senderIdObjectId': 0, 'receiverIdObjectId':  0, 'sender': 0}}"
     })
-    Flux<FriendshipDetails> findAllFriendshipsWithUserId(String userId, FriendshipStatus friendshipStatus);
+    Flux<FriendshipDetails> findAllFriendshipsContainingUserId(String userId, FriendshipStatus friendshipStatus);
     Mono<Boolean> existsBySenderIdAndReceiverId(String senderId, String receiverId);
 }
