@@ -18,9 +18,7 @@ const WebSocketClient = ({ chatRoomId }) => {
   const handleClickSendMessage = useCallback(() =>
     sendMessage(
       JSON.stringify({
-        type: "JOIN",
-        content: messageInput,
-        sender: "kondziet",
+        content: messageInput
       })
     )
   );
