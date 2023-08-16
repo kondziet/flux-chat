@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import pl.kondziet.springbackend.model.dto.MessageResponse;
 import pl.kondziet.springbackend.model.entity.Message;
 import pl.kondziet.springbackend.repository.MessageRepository;
 import pl.kondziet.springbackend.util.mapper.MessageMapper;
@@ -38,11 +39,11 @@ public class DirectMessageHandler implements WebSocketHandler {
 
         Mono<Void> receive = session.receive()
                 .map(WebSocketMessage::getPayloadAsText)
-                .map(messageMapper::toMessage)
-                .flatMap(message -> authenticatedUserId.map(userId -> {
-                    message.setSenderId(userId);
-                    return message;
-                }))
+                .map(messageMapper::toMessageRequest)
+                .flatMap(messageRequest -> authenticatedUserId.map(userId -> Message.builder()
+                        .senderId(userId)
+                        .content(messageRequest.getContent())
+                        .build()))
                 .doOnNext(message -> {
                     System.out.println(message);
                     lastReceivedEvent.set(message);
@@ -64,6 +65,11 @@ public class DirectMessageHandler implements WebSocketHandler {
                 .then();
 
         Mono<Void> send = session.send(chatSinks.asFlux()
+                        .map(message -> MessageResponse.builder()
+                                .content(message.getContent())
+                                .senderId(message.getSenderId())
+                                .build()
+                        )
                         .map(messageMapper::toString)
                         .map(session::textMessage))
                 .then();
